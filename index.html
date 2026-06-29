@@ -1,13 +1,454 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinTrack - Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    Task is on the way
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinTrack Pro - Expense Tracker</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <!--  authentication  -->
+    <div id="authContainer" class="auth-container">
+      <div class="auth-box">
+        <!-- Brand -->
+        <div class="text-center mb-6">
+          <div
+            class="flex items-center justify-center gap-2 text-2xl font-bold text-indigo-500"
+          >
+            <i class="fas fa-chart-line"></i>
+            <span>FinTrack Pro</span>
+          </div>
+        </div>
+
+        <!-- tabs -->
+        <div
+          class="flex rounded-lg overflow-hidden border border-[var(--border-color)] mb-5"
+        >
+          <button
+            id="authLoginTab"
+            class="flex-1 py-2.5 text-sm font-semibold bg-indigo-500 text-white transition"
+          >
+            Login
+          </button>
+          <button
+            id="authSignupTab"
+            class="flex-1 py-2.5 text-sm font-semibold bg-[var(--bg-primary)] text-[var(--text-secondary)] transition"
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <!-- login form -->
+        <form id="loginForm">
+          <div class="space-y-4">
+            <div>
+              <label
+                class="block text-sm font-medium mb-1"
+                style="color: var(--text-secondary)"
+                >Email</label
+              >
+              <input
+                type="email"
+                id="loginEmail"
+                class="input-field"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium mb-1"
+                style="color: var(--text-secondary)"
+                >Password</label
+              >
+              <input
+                type="password"
+                id="loginPassword"
+                class="input-field"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <button type="submit" class="btn-primary w-full justify-center">
+              Login
+            </button>
+          </div>
+        </form>
+
+        <!-- signup form -->
+        <form id="signupForm" class="hidden">
+          <div class="space-y-4">
+            <div>
+              <label
+                class="block text-sm font-medium mb-1"
+                style="color: var(--text-secondary)"
+                >Full Name</label
+              >
+              <input
+                type="text"
+                id="signupName"
+                class="input-field"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium mb-1"
+                style="color: var(--text-secondary)"
+                >Email</label
+              >
+              <input
+                type="email"
+                id="signupEmail"
+                class="input-field"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium mb-1"
+                style="color: var(--text-secondary)"
+                >Password</label
+              >
+              <input
+                type="password"
+                id="signupPassword"
+                class="input-field"
+                placeholder="Min 6 characters"
+                required
+                minlength="6"
+              />
+            </div>
+            <button type="submit" class="btn-primary w-full justify-center">
+              Create Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="app" class="hidden">
+      <!-- ─── header ─── -->
+      <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-2 text-2xl font-bold text-indigo-500"
+          >
+            <i class="fas fa-chart-line"></i>
+            <span>FinTrack Pro</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span
+            id="userGreeting"
+            class="text-sm font-medium text-[var(--text-secondary)]"
+          ></span>
+          <button
+            id="logoutBtn"
+            class="text-sm text-red-500 hover:text-red-600 font-medium flex items-center gap-1"
+          >
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- ─── navbar ─── -->
+      <nav class="flex flex-wrap items-center gap-2 mb-6">
+        <button class="nav-link active" data-tab="dashboard">
+          <i class="fas fa-th-large mr-1"></i> Dashboard
+        </button>
+        <button class="nav-link" data-tab="settings">
+          <i class="fas fa-cog mr-1"></i> Settings
+        </button>
+        <div class="flex-1"></div>
+        <button id="addTransactionBtn" class="btn-primary text-sm">
+          <i class="fas fa-plus"></i> Add Transaction
+        </button>
+      </nav>
+
+      <!-- ─── dashboard tab ─── -->
+      <div id="tabDashboard">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="glass-card stat-card">
+            <p class="text-sm text-[var(--text-secondary)]">Current Balance</p>
+            <p id="displayBalance" class="text-2xl font-bold mt-1">$0.00</p>
+          </div>
+          <div class="glass-card stat-card">
+            <p class="text-sm text-[var(--text-secondary)]">Total Income</p>
+            <p
+              id="displayIncome"
+              class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"
+            >
+              $0.00
+            </p>
+          </div>
+          <div class="glass-card stat-card">
+            <p class="text-sm text-[var(--text-secondary)]">Total Expense</p>
+            <p
+              id="displayExpense"
+              class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"
+            >
+              $0.00
+            </p>
+          </div>
+          <div class="glass-card stat-card">
+            <p class="text-sm text-[var(--text-secondary)]">
+              Total Transactions
+            </p>
+            <p id="displayCount" class="text-2xl font-bold mt-1">0</p>
+          </div>
+        </div>
+
+        <!-- chart -->
+        <div class="glass-card mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-lg">Cash Flow Analysis</h3>
+            <span class="text-xs text-[var(--text-secondary)]"
+              >Last 7 days</span
+            >
+          </div>
+          <div id="chartContainer" class="w-full overflow-x-auto">
+            <div
+              id="chartBars"
+              class="chart-bar-wrapper"
+              style="min-width: 280px"
+            >
+              <!-- Bars rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- transactions -->
+        <div class="glass-card">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h3 class="font-semibold text-lg">All Transactions</h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative">
+                <i
+                  class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] text-sm"
+                ></i>
+                <input
+                  id="searchInput"
+                  type="text"
+                  class="input-field pl-9 py-1.5 text-sm w-40 md:w-56"
+                  placeholder="Search transactions..."
+                />
+              </div>
+              <select id="filterType" class="input-field py-1.5 text-sm w-32">
+                <option value="all">All Types</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full transaction-table text-sm">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th class="text-right">Amount</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsBody">
+                <!-- Rows by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="emptyTransactions" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>
+              No transactions yet. Click <strong>Add Transaction</strong> to get
+              started!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── settings tab ─── -->
+      <div id="tabSettings" class="hidden">
+        <div class="glass-card max-w-lg">
+          <h3 class="font-semibold text-lg mb-4">Preferences</h3>
+
+          <!-- Currency -->
+          <div
+            class="flex items-center justify-between py-3 border-b border-[var(--border-color)]"
+          >
+            <div>
+              <p class="font-medium">Currency</p>
+              <p class="text-sm text-[var(--text-secondary)]">
+                Select your preferred currency
+              </p>
+            </div>
+            <select id="currencySelect" class="currency-select">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="JPY">JPY (¥)</option>
+            </select>
+          </div>
+
+          <!-- Dark Mode -->
+          <div
+            class="flex items-center justify-between py-3 border-b border-[var(--border-color)]"
+          >
+            <div>
+              <p class="font-medium">Dark Mode</p>
+              <p class="text-sm text-[var(--text-secondary)]">
+                Toggle between light and dark theme
+              </p>
+            </div>
+            <div id="darkModeToggle" class="toggle-switch">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- Reset Data -->
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="font-medium text-red-500">Reset All Data</p>
+              <p class="text-sm text-[var(--text-secondary)]">
+                Permanently delete all transactions
+              </p>
+            </div>
+            <button id="resetDataBtn" class="btn-danger text-sm">
+              <i class="fas fa-trash"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--  ADD TRANSACTION MODAL  -->
+    <div id="transactionModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-xl font-bold">Add Transaction</h3>
+          <button
+            id="closeModalBtn"
+            class="text-2xl leading-none text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form id="transactionForm">
+          <div class="mb-4">
+            <label
+              class="block text-sm font-medium mb-1 text-[var(--text-secondary)]"
+              >Type</label
+            >
+            <div class="flex gap-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="txnType"
+                  value="income"
+                  checked
+                  class="accent-indigo-500"
+                />
+                <span
+                  class="text-sm font-medium text-green-600 dark:text-green-400"
+                  >Income</span
+                >
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="txnType"
+                  value="expense"
+                  class="accent-indigo-500"
+                />
+                <span class="text-sm font-medium text-red-600 dark:text-red-400"
+                  >Expense</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <label
+              class="block text-sm font-medium mb-1 text-[var(--text-secondary)]"
+              >Description</label
+            >
+            <input
+              type="text"
+              id="txnDescription"
+              class="input-field"
+              placeholder="e.g. Amazon, Salary, Coffee"
+              required
+            />
+          </div>
+
+          <!-- Amount -->
+          <div class="mb-4">
+            <label
+              class="block text-sm font-medium mb-1 text-[var(--text-secondary)]"
+              >Amount</label
+            >
+            <input
+              type="number"
+              id="txnAmount"
+              class="input-field"
+              placeholder="0.00"
+              min="0.01"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <!-- Date -->
+          <div class="mb-4">
+            <label
+              class="block text-sm font-medium mb-1 text-[var(--text-secondary)]"
+              >Date</label
+            >
+            <input type="date" id="txnDate" class="input-field" required />
+          </div>
+
+          <!-- Category -->
+          <div class="mb-5">
+            <label
+              class="block text-sm font-medium mb-1 text-[var(--text-secondary)]"
+              >Category</label
+            >
+            <select id="txnCategory" class="input-field">
+              <option value="Food & Dining">Food & Dining</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Bills & Utilities">Bills & Utilities</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
+              <option value="Salary">Salary</option>
+              <option value="Investment">Investment</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary w-full justify-center">
+            <i class="fas fa-save"></i> Save Transaction
+          </button>
+        </form>
+      </div>
+    </div>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
